@@ -20,7 +20,7 @@ CXX	?= g++
 AR	?= ar
 LD	?= ld
 
-GADEPS?= $(HOME)/myprog/gaminganywhere/deps.posix
+GADEPS?= /home/kbostan/thesis_work/thesis/gaminganywhere/deps.posix
 CFLAGS	= -O2 -fPIC -g -Wall -I$(GADEPS)/include $(EXTRACFLAGS) -I/usr/local/include # -DPIPELINE_FILTER
 #	-D__STDC_CONSTANT_MACROS
 CXXFLAGS = $(CFLAGS)

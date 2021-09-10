@@ -1,5 +1,5 @@
 
-GADEPS		?= $(HOME)/myprog/gaminganywhere/deps.posix
+GADEPS		?= /home/kbostan/thesis_work/thesis/gaminganywhere/deps.posix
 MACHINE		?= $(shell uname -m)
 USE_SYSTEM_PACKAGES ?= 0
 PARALLEL_MAKE	?= -j5
@@ -145,7 +145,8 @@ xvid:
 
 ffmpeg:
 	$(TBZUNPACK) $(FFMPEG)
-	cd $(FFMPEGDIR); ./configure --prefix=$(GADEPS) \
+	cd $(FFMPEGDIR); PATH="$(HOME)/bin:$(PATH)" PKG_CONFIG_PATH="/usr/lib/x86_64-linux-gnu/pkgconfig" ./configure \
+		--prefix="/usr/lib/x86_64-linux-gnu"
 		--enable-shared --enable-pic \
 		--enable-libmp3lame \
 		--enable-libtheora --enable-libvorbis \
@@ -164,9 +165,7 @@ live555:
 	$(TGZUNPACK) $(LIVE555)
 	# enable -fPIC for macosx and linux
 	mv -f $(LIVE555DIR)/config.linux $(LIVE555DIR)/config.linux.old
-	mv -f $(LIVE555DIR)/config.macosx $(LIVE555DIR)/config.macosx.old
 	cat $(LIVE555DIR)/config.linux.old | sed -e 's,^COMPILE_OPTS.*$$,& -fPIC,' > $(LIVE555DIR)/config.linux
-	cat $(LIVE555DIR)/config.macosx.old | sed -e 's,^COMPILE_OPTS.*$$,& -fPIC,' > $(LIVE555DIR)/config.macosx
 	# need to apply the 4MB buffer patch?
 	cd $(LIVE555DIR); cat ../patches/live555-* | patch -p1 
 	#
@@ -178,4 +177,3 @@ live555:
 	find $(LIVE555DIR) -name '*.hh' -exec cp -f {} $(GADEPS)/include/live555 \;
 	cp -f $(LIVE555DIR)/groupsock/include/NetCommon.h $(GADEPS)/include/live555
 	rm -rf $(LIVE555DIR)
-
