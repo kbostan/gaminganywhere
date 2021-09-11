@@ -34,9 +34,6 @@ FREETYPE	= freetype-2.11.0.tar.gz
 FREETYPEDIR	= freetype-2.11.0
 CMAKE		= cmake-3.21.2.tar.gz
 CMAKEDIR	= cmake-3.21.2
-<<<<<<< HEAD
 OPENSSL		= openssl-1.1.1l.tar.gz
 OPENSSLDIR	= openssl-1.1.1l
-=======
->>>>>>> 8c93fcdb3e6743a6a74d6779b981ae6fbe1e4aca
 
