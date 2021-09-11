@@ -6,7 +6,11 @@ USE_SYSTEM_PACKAGES ?= 0
 PARALLEL_MAKE	?= -j5
 SYSTEM		= $(shell uname -s)
 PACKAGES	= freetype cmake sdl2 sdl2_ttf yasm nasm lame opus ogg vorbis theora vpx \
+<<<<<<< HEAD
 		  x264 x265 xvid ffmpeg live555 openssl
+=======
+		  x264 x265 xvid ffmpeg live555
+>>>>>>> 8c93fcdb3e6743a6a74d6779b981ae6fbe1e4aca
 OSX_CLANG_PATCH	= echo '*** Not on OS X: not applied ***'
 
 ### package configurations for Mac
@@ -207,6 +211,7 @@ cmake:
 	make -C $(CMAKEDIR)/mybuild $(PARALLEL_MAKE)
 	make -C $(CMAKEDIR)/mybuild install
 	rm -rf $(CMAKEDIR)
+<<<<<<< HEAD
 	
 openssl:
 	$(TGZUNPACK) $(OPENSSL)
@@ -215,3 +220,5 @@ openssl:
 	make -C $(OPENSSLDIR)/mybuild $(PARALLEL_MAKE)
 	make -C $(OPENSSLDIR)/mybuild install
 	rm -rf $(OPENSSLDIR)
+=======
+>>>>>>> 8c93fcdb3e6743a6a74d6779b981ae6fbe1e4aca
