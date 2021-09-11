@@ -20,7 +20,7 @@ CXX	?= g++
 AR	?= ar
 LD	?= ld
 
-GADEPS?= /home/kbostan/thesis_work/thesis/gaminganywhere/deps.posix
+GADEPS?= $(HOME)/gaminganywhere/deps.posix
 CFLAGS	= -O2 -fPIC -g -Wall -I$(GADEPS)/include $(EXTRACFLAGS) -I/usr/local/include # -DPIPELINE_FILTER
 #	-D__STDC_CONSTANT_MACROS
 CXXFLAGS = $(CFLAGS)
@@ -64,6 +64,9 @@ SDLCF	= $(shell pkg-config sdl2 SDL2_ttf --cflags)
 SDLLD	= $(shell pkg-config sdl2 SDL2_ttf --libs)
 
 endif
+
+SSLCF	= $(shell pkg-config libssl libcrypto --cflags)
+SSLLD	= $(shell pkg-config libssl libcrypto --libs)
 
 L5CF	= -I$(GADEPS)/include/live555
 L5LD	= -L$(GADEPS)/lib -lliveMedia -lBasicUsageEnvironment -lUsageEnvironment -lgroupsock

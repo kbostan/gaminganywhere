@@ -5,8 +5,8 @@ PKG_CONFIG_PATH	=  $(GADEPS)/lib/pkgconfig
 USE_SYSTEM_PACKAGES ?= 0
 PARALLEL_MAKE	?= -j5
 SYSTEM		= $(shell uname -s)
-PACKAGES	= freetype sdl2 sdl2_ttf yasm nasm lame opus ogg vorbis theora vpx \
-		  x264 x265 xvid ffmpeg live555
+PACKAGES	= freetype cmake sdl2 sdl2_ttf yasm nasm lame opus ogg vorbis theora vpx \
+		  x264 x265 xvid ffmpeg live555 openssl
 OSX_CLANG_PATCH	= echo '*** Not on OS X: not applied ***'
 
 ### package configurations for Mac
@@ -133,14 +133,14 @@ vpx:
 x264:
 	$(TBZUNPACK) $(X264)
 	cd $(X264DIR); $(OSX_CLANG_PATCH)
-	cd $(X264DIR); ./configure --prefix=$(GADEPS) --enable-shared --enable-pic
-	make -C $(X264DIR) $(PARALLEL_MAKE)
+	cd $(X264DIR); PATH="$(GADEPS)/bin:$(PATH)" ./configure --prefix=$(GADEPS) --enable-shared --enable-pic
+	PATH="$(GADEPS)/bin:$(PATH)" make -C $(X264DIR) $(PARALLEL_MAKE)
 	make -C $(X264DIR) install
 	rm -rf $(X264DIR)
 
 x265:
 	$(TGZUNPACK) $(X265)
-	cd $(X265DIR)/build/linux; cmake \
+	cd $(X265DIR)/build/linux; PATH="$(GADEPS)/bin:$(PATH)" cmake \
 		-D CMAKE_INSTALL_PREFIX:PATH=$(GADEPS) \
 		-D CMAKE_CXX_FLAGS="-fPIC" -D CMAKE_C_FLAGS="-fPIC" \
 		../../source/
@@ -155,10 +155,15 @@ xvid:
 	make -C $(XVIDDIR)/build/generic install
 	rm -rf $(XVIDDIR)
 
-ffmpeg:
+ffmpeg:### update with nvenc and so on..
 	$(TBZUNPACK) $(FFMPEG)
-	cd $(FFMPEGDIR); ./configure \
+	cd $(FFMPEGDIR); PATH="$(HOME)/bin:$(GADEPS)/bin:$(PATH)" PKG_CONFIG_PATH="$(PKG_CONFIG_PATH)" ./configure \
 		--prefix=$(GADEPS) \
+		--pkg-config-flags="--static" \
+		--extra-cflags="-I$(GADEPS)/include -I$(GADEPS)/include/vorbis" \
+		--extra-ldflags="-L$(GADEPS)/lib" \
+		--extra-libs="-lpthread -lm" \
+		--ld="g++" \
 		--enable-shared --enable-pic \
 		--enable-libmp3lame \
 		--enable-libtheora --enable-libvorbis \
@@ -166,10 +171,8 @@ ffmpeg:
 		--enable-libx265 \
 		--enable-libopus \
 		--enable-libxvid \
-		--enable-gpl --enable-nonfree --disable-outdev=sdl \
-		--extra-cflags=-I$(GADEPS)/include \
-		--extra-ldflags=-L$(GADEPS)/lib
-	make -C $(FFMPEGDIR) $(PARALLEL_MAKE)
+		--enable-gpl --enable-nonfree --disable-outdev=sdl
+	PATH="$(GADEPS)/bin:$(PATH)" make -C $(FFMPEGDIR) $(PARALLEL_MAKE)
 	make -C $(FFMPEGDIR) install
 	rm -rf $(FFMPEGDIR)
 
@@ -178,8 +181,6 @@ live555:
 	# enable -fPIC for macosx and linux
 	mv -f $(LIVE555DIR)/config.linux $(LIVE555DIR)/config.linux.old
 	cat $(LIVE555DIR)/config.linux.old | sed -e 's,^COMPILE_OPTS.*$$,& -fPIC,' > $(LIVE555DIR)/config.linux
-	# need to apply the 4MB buffer patch?
-	cd $(LIVE555DIR); cat ../patches/live555-* | patch -p1 
 	#
 	cd $(LIVE555DIR); ./genMakefiles $(shell uname -s | tr A-Z a-z | sed -e 's,darwin,macosx,' -e 's,cygwin.*,cygwin,')
 	make -C $(LIVE555DIR) $(PARALLEL_MAKE)
@@ -198,3 +199,19 @@ freetype:
 	make -C $(FREETYPEDIR)/mybuild install
 	rm -rf $(FREETYPEDIR)
 	ln -s $(GADEPS)/lib/pkgconfig $(GADEPS)/lib/freetype-config 
+	
+cmake:
+	$(TGZUNPACK) $(CMAKE)
+	mkdir -p $(CMAKEDIR)/mybuild
+	cd $(CMAKEDIR)/mybuild; ../configure --prefix=$(GADEPS)
+	make -C $(CMAKEDIR)/mybuild $(PARALLEL_MAKE)
+	make -C $(CMAKEDIR)/mybuild install
+	rm -rf $(CMAKEDIR)
+	
+openssl:
+	$(TGZUNPACK) $(OPENSSL)
+	mkdir -p $(OPENSSLDIR)/mybuild
+	cd $(OPENSSLDIR)/mybuild; ../config --prefix=$(GADEPS)
+	make -C $(OPENSSLDIR)/mybuild $(PARALLEL_MAKE)
+	make -C $(OPENSSLDIR)/mybuild install
+	rm -rf $(OPENSSLDIR)

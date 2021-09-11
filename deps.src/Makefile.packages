@@ -32,4 +32,8 @@ LIVE555		= live.2021.08.24.tar.gz
 LIVE555DIR	= live
 FREETYPE	= freetype-2.11.0.tar.gz
 FREETYPEDIR	= freetype-2.11.0
+CMAKE		= cmake-3.21.2.tar.gz
+CMAKEDIR	= cmake-3.21.2
+OPENSSL		= openssl-1.1.1l.tar.gz
+OPENSSLDIR	= openssl-1.1.1l
 
