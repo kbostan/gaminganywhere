@@ -1,11 +1,16 @@
 
-GADEPS		?= /home/kbostan/thesis_work/thesis/gaminganywhere/deps.posix
+GADEPS		?= $(HOME)/gaminganywhere/deps.posix
 MACHINE		?= $(shell uname -m)
+PKG_CONFIG_PATH	=  $(GADEPS)/lib/pkgconfig
 USE_SYSTEM_PACKAGES ?= 0
 PARALLEL_MAKE	?= -j5
 SYSTEM		= $(shell uname -s)
-PACKAGES	= sdl2 sdl2_ttf yasm lame opus ogg vorbis theora vpx \
+PACKAGES	= freetype cmake sdl2 sdl2_ttf yasm nasm lame opus ogg vorbis theora vpx \
+<<<<<<< HEAD
+		  x264 x265 xvid ffmpeg live555 openssl
+=======
 		  x264 x265 xvid ffmpeg live555
+>>>>>>> 8c93fcdb3e6743a6a74d6779b981ae6fbe1e4aca
 OSX_CLANG_PATCH	= echo '*** Not on OS X: not applied ***'
 
 ### package configurations for Mac
@@ -50,6 +55,9 @@ linux_ubuntu:
 			libmp3lame-dev libopus-dev libogg-dev \
 			libvorbis-dev libtheora-dev \
 			libvpx-dev libx264-dev libxvidcore-dev
+			
+clean:
+	rm -rf $(GADEPS)
 
 sdl2:
 	$(TGZUNPACK) $(SDL2)
@@ -62,7 +70,7 @@ sdl2:
 sdl2_ttf:
 	$(TGZUNPACK) $(SDL2_TTF)
 	mkdir -p $(SDL2_TTFDIR)/mybuild
-	cd $(SDL2_TTFDIR)/mybuild; ../configure --prefix=$(GADEPS) --with-pic
+	cd $(SDL2_TTFDIR)/mybuild; PKG_CONFIG_PATH="$(PKG_CONFIG_PATH)" ../configure --prefix=$(GADEPS) --with-pic
 	make -C $(SDL2_TTFDIR)/mybuild $(PARALLEL_MAKE)
 	make -C $(SDL2_TTFDIR)/mybuild install
 	rm -rf $(SDL2_TTFDIR)
@@ -73,6 +81,13 @@ yasm:
 	make -C $(YASMDIR) $(PARALLEL_MAKE)
 	make -C $(YASMDIR) install
 	rm -rf $(YASMDIR)
+	
+nasm:
+	$(TGZUNPACK) $(NASM)
+	cd $(NASMDIR); ./configure --prefix=$(GADEPS)
+	make -C $(NASMDIR) $(PARALLEL_MAKE)
+	make -C $(NASMDIR) install
+	rm -rf $(NASMDIR)
 
 lame:
 	$(TGZUNPACK) $(LAME)
@@ -106,29 +121,30 @@ vorbis:
 theora:
 	$(TBZUNPACK) $(THEORA)
 	cd $(THEORADIR); $(OSX_CLANG_PATCH)
-	cd $(THEORADIR); ./configure --prefix=$(GADEPS) --with-pic --disable-examples
+	cd $(THEORADIR); PKG_CONFIG_PATH="$(PKG_CONFIG_PATH)" ./configure --prefix=$(GADEPS) --with-pic --disable-examples
 	make -C $(THEORADIR) $(PARALLEL_MAKE)
 	make -C $(THEORADIR) install
 	rm -rf $(THEORADIR)
 
 vpx:
-	$(TBZUNPACK) $(VPX)
-	cd $(VPXDIR); ./configure --prefix=$(GADEPS) $(VPX_EXTRA_CONFIG) --enable-pic
-	make -C $(VPXDIR) $(PARALLEL_MAKE)
+	$(TGZUNPACK) $(VPX)
+	cd $(VPXDIR); PATH="$(GADEPS)/bin:$(PATH)" PKG_CONFIG_PATH="$(PKG_CONFIG_PATH)" ./configure \
+	--prefix=$(GADEPS) --libdir=$(GADEPS)/lib $(VPX_EXTRA_CONFIG) --enable-pic
+	PATH="$(GADEPS)/bin:$(PATH)" make -C $(VPXDIR) $(PARALLEL_MAKE)
 	make -C $(VPXDIR) install
 	rm -rf $(VPXDIR)
 
 x264:
 	$(TBZUNPACK) $(X264)
 	cd $(X264DIR); $(OSX_CLANG_PATCH)
-	cd $(X264DIR); ./configure --prefix=$(GADEPS) --enable-shared --enable-pic
-	make -C $(X264DIR) $(PARALLEL_MAKE)
+	cd $(X264DIR); PATH="$(GADEPS)/bin:$(PATH)" ./configure --prefix=$(GADEPS) --enable-shared --enable-pic
+	PATH="$(GADEPS)/bin:$(PATH)" make -C $(X264DIR) $(PARALLEL_MAKE)
 	make -C $(X264DIR) install
 	rm -rf $(X264DIR)
 
 x265:
 	$(TGZUNPACK) $(X265)
-	cd $(X265DIR)/build/linux; cmake \
+	cd $(X265DIR)/build/linux; PATH="$(GADEPS)/bin:$(PATH)" cmake \
 		-D CMAKE_INSTALL_PREFIX:PATH=$(GADEPS) \
 		-D CMAKE_CXX_FLAGS="-fPIC" -D CMAKE_C_FLAGS="-fPIC" \
 		../../source/
@@ -143,10 +159,15 @@ xvid:
 	make -C $(XVIDDIR)/build/generic install
 	rm -rf $(XVIDDIR)
 
-ffmpeg:
+ffmpeg:### update with nvenc and so on..
 	$(TBZUNPACK) $(FFMPEG)
-	cd $(FFMPEGDIR); PATH="$(HOME)/bin:$(PATH)" PKG_CONFIG_PATH="/usr/lib/x86_64-linux-gnu/pkgconfig" ./configure \
-		--prefix="/usr/lib/x86_64-linux-gnu"
+	cd $(FFMPEGDIR); PATH="$(HOME)/bin:$(GADEPS)/bin:$(PATH)" PKG_CONFIG_PATH="$(PKG_CONFIG_PATH)" ./configure \
+		--prefix=$(GADEPS) \
+		--pkg-config-flags="--static" \
+		--extra-cflags="-I$(GADEPS)/include -I$(GADEPS)/include/vorbis" \
+		--extra-ldflags="-L$(GADEPS)/lib" \
+		--extra-libs="-lpthread -lm" \
+		--ld="g++" \
 		--enable-shared --enable-pic \
 		--enable-libmp3lame \
 		--enable-libtheora --enable-libvorbis \
@@ -154,10 +175,8 @@ ffmpeg:
 		--enable-libx265 \
 		--enable-libopus \
 		--enable-libxvid \
-		--enable-gpl --enable-nonfree --disable-outdev=sdl \
-		--extra-cflags=-I$(GADEPS)/include \
-		--extra-ldflags=-L$(GADEPS)/lib
-	make -C $(FFMPEGDIR) $(PARALLEL_MAKE)
+		--enable-gpl --enable-nonfree --disable-outdev=sdl
+	PATH="$(GADEPS)/bin:$(PATH)" make -C $(FFMPEGDIR) $(PARALLEL_MAKE)
 	make -C $(FFMPEGDIR) install
 	rm -rf $(FFMPEGDIR)
 
@@ -166,8 +185,6 @@ live555:
 	# enable -fPIC for macosx and linux
 	mv -f $(LIVE555DIR)/config.linux $(LIVE555DIR)/config.linux.old
 	cat $(LIVE555DIR)/config.linux.old | sed -e 's,^COMPILE_OPTS.*$$,& -fPIC,' > $(LIVE555DIR)/config.linux
-	# need to apply the 4MB buffer patch?
-	cd $(LIVE555DIR); cat ../patches/live555-* | patch -p1 
 	#
 	cd $(LIVE555DIR); ./genMakefiles $(shell uname -s | tr A-Z a-z | sed -e 's,darwin,macosx,' -e 's,cygwin.*,cygwin,')
 	make -C $(LIVE555DIR) $(PARALLEL_MAKE)
@@ -177,3 +194,31 @@ live555:
 	find $(LIVE555DIR) -name '*.hh' -exec cp -f {} $(GADEPS)/include/live555 \;
 	cp -f $(LIVE555DIR)/groupsock/include/NetCommon.h $(GADEPS)/include/live555
 	rm -rf $(LIVE555DIR)
+	
+freetype:
+	$(TGZUNPACK) $(FREETYPE)
+	mkdir -p $(FREETYPEDIR)/mybuild
+	cd $(FREETYPEDIR)/mybuild; ../configure --prefix=$(GADEPS) --with-pic
+	make -C $(FREETYPEDIR)/mybuild $(PARALLEL_MAKE)
+	make -C $(FREETYPEDIR)/mybuild install
+	rm -rf $(FREETYPEDIR)
+	ln -s $(GADEPS)/lib/pkgconfig $(GADEPS)/lib/freetype-config 
+	
+cmake:
+	$(TGZUNPACK) $(CMAKE)
+	mkdir -p $(CMAKEDIR)/mybuild
+	cd $(CMAKEDIR)/mybuild; ../configure --prefix=$(GADEPS)
+	make -C $(CMAKEDIR)/mybuild $(PARALLEL_MAKE)
+	make -C $(CMAKEDIR)/mybuild install
+	rm -rf $(CMAKEDIR)
+<<<<<<< HEAD
+	
+openssl:
+	$(TGZUNPACK) $(OPENSSL)
+	mkdir -p $(OPENSSLDIR)/mybuild
+	cd $(OPENSSLDIR)/mybuild; ../config --prefix=$(GADEPS)
+	make -C $(OPENSSLDIR)/mybuild $(PARALLEL_MAKE)
+	make -C $(OPENSSLDIR)/mybuild install
+	rm -rf $(OPENSSLDIR)
+=======
+>>>>>>> 8c93fcdb3e6743a6a74d6779b981ae6fbe1e4aca

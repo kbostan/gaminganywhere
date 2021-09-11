@@ -1,8 +1,8 @@
 
 include ../Makefile.def
 
-CFLAGS	+= -I../core $(AVCCF) $(L5CF) $(SDLCF)
-LDFLAGS	= $(EXTRALDFLAGS) -L../core -lga $(AVCLD) $(SDLLD) $(L5LD) -Wl,-rpath,\$$ORIGIN
+CFLAGS	+= -I../core $(SSLCF) $(AVCCF) $(L5CF) $(SDLCF)
+LDFLAGS	= $(EXTRALDFLAGS) -L../core -lga $(AVCLD) $(SDLLD) $(L5LD) $(SSLLD) -Wl,-rpath,\$$ORIGIN
 
 ifeq ($(OS), Linux)
 CFLAGS	+= $(X11CF)

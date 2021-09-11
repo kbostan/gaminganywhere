@@ -1,5 +1,7 @@
 
 # Makefile for POSIX-based OSes
+GADEPS	?= $(HOME)/gaminganywhere/deps.posix
+PKG_CONFIG_PATH	=  $(GADEPS)/lib/pkgconfig
 
 TARGET	= core module server client
 
@@ -8,16 +10,16 @@ TARGET	= core module server client
 all: $(TARGET)
 
 core:
-	make -C core
+	PKG_CONFIG_PATH="$(PKG_CONFIG_PATH)" make -C core
 
 module: core
-	make -C module
+	PKG_CONFIG_PATH="$(PKG_CONFIG_PATH)" make -C module
 
 server: core
-	make -C server
+	PKG_CONFIG_PATH="$(PKG_CONFIG_PATH)" make -C server
 
 client: core
-	make -C client
+	PKG_CONFIG_PATH="$(PKG_CONFIG_PATH)" make -C client #fix
 
 install:
 	mkdir -p ../bin
