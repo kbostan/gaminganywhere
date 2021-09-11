@@ -1,5 +1,5 @@
 
-GADEPS		?= /home/kbostan/thesis_work/thesis/gaminganywhere/deps.posix
+GADEPS		?= $(HOME)/gaminganywhere/deps.posix
 MACHINE		?= $(shell uname -m)
 USE_SYSTEM_PACKAGES ?= 0
 PARALLEL_MAKE	?= -j5
@@ -112,7 +112,7 @@ theora:
 	rm -rf $(THEORADIR)
 
 vpx:
-	$(TBZUNPACK) $(VPX)
+	$(TGZUNPACK) $(VPX)
 	cd $(VPXDIR); ./configure --prefix=$(GADEPS) $(VPX_EXTRA_CONFIG) --enable-pic
 	make -C $(VPXDIR) $(PARALLEL_MAKE)
 	make -C $(VPXDIR) install
