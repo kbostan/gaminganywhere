@@ -1,10 +1,11 @@
 
 GADEPS		?= $(HOME)/gaminganywhere/deps.posix
 MACHINE		?= $(shell uname -m)
+PKG_CONFIG_PATH	=  $(GADEPS)/lib/pkgconfig
 USE_SYSTEM_PACKAGES ?= 0
 PARALLEL_MAKE	?= -j5
 SYSTEM		= $(shell uname -s)
-PACKAGES	= sdl2 sdl2_ttf yasm lame opus ogg vorbis theora vpx \
+PACKAGES	= freetype sdl2 sdl2_ttf yasm nasm lame opus ogg vorbis theora vpx \
 		  x264 x265 xvid ffmpeg live555
 OSX_CLANG_PATCH	= echo '*** Not on OS X: not applied ***'
 
@@ -50,6 +51,9 @@ linux_ubuntu:
 			libmp3lame-dev libopus-dev libogg-dev \
 			libvorbis-dev libtheora-dev \
 			libvpx-dev libx264-dev libxvidcore-dev
+			
+clean:
+	rm -rf $(GADEPS)
 
 sdl2:
 	$(TGZUNPACK) $(SDL2)
@@ -62,7 +66,7 @@ sdl2:
 sdl2_ttf:
 	$(TGZUNPACK) $(SDL2_TTF)
 	mkdir -p $(SDL2_TTFDIR)/mybuild
-	cd $(SDL2_TTFDIR)/mybuild; ../configure --prefix=$(GADEPS) --with-pic
+	cd $(SDL2_TTFDIR)/mybuild; PKG_CONFIG_PATH="$(PKG_CONFIG_PATH)" ../configure --prefix=$(GADEPS) --with-pic
 	make -C $(SDL2_TTFDIR)/mybuild $(PARALLEL_MAKE)
 	make -C $(SDL2_TTFDIR)/mybuild install
 	rm -rf $(SDL2_TTFDIR)
@@ -73,6 +77,13 @@ yasm:
 	make -C $(YASMDIR) $(PARALLEL_MAKE)
 	make -C $(YASMDIR) install
 	rm -rf $(YASMDIR)
+	
+nasm:
+	$(TGZUNPACK) $(NASM)
+	cd $(NASMDIR); ./configure --prefix=$(GADEPS)
+	make -C $(NASMDIR) $(PARALLEL_MAKE)
+	make -C $(NASMDIR) install
+	rm -rf $(NASMDIR)
 
 lame:
 	$(TGZUNPACK) $(LAME)
@@ -106,15 +117,16 @@ vorbis:
 theora:
 	$(TBZUNPACK) $(THEORA)
 	cd $(THEORADIR); $(OSX_CLANG_PATCH)
-	cd $(THEORADIR); ./configure --prefix=$(GADEPS) --with-pic --disable-examples
+	cd $(THEORADIR); PKG_CONFIG_PATH="$(PKG_CONFIG_PATH)" ./configure --prefix=$(GADEPS) --with-pic --disable-examples
 	make -C $(THEORADIR) $(PARALLEL_MAKE)
 	make -C $(THEORADIR) install
 	rm -rf $(THEORADIR)
 
 vpx:
 	$(TGZUNPACK) $(VPX)
-	cd $(VPXDIR); ./configure --prefix=$(GADEPS) $(VPX_EXTRA_CONFIG) --enable-pic
-	make -C $(VPXDIR) $(PARALLEL_MAKE)
+	cd $(VPXDIR); PATH="$(GADEPS)/bin:$(PATH)" PKG_CONFIG_PATH="$(PKG_CONFIG_PATH)" ./configure \
+	--prefix=$(GADEPS) --libdir=$(GADEPS)/lib $(VPX_EXTRA_CONFIG) --enable-pic
+	PATH="$(GADEPS)/bin:$(PATH)" make -C $(VPXDIR) $(PARALLEL_MAKE)
 	make -C $(VPXDIR) install
 	rm -rf $(VPXDIR)
 
@@ -145,8 +157,8 @@ xvid:
 
 ffmpeg:
 	$(TBZUNPACK) $(FFMPEG)
-	cd $(FFMPEGDIR); PATH="$(HOME)/bin:$(PATH)" PKG_CONFIG_PATH="/usr/lib/x86_64-linux-gnu/pkgconfig" ./configure \
-		--prefix="/usr/lib/x86_64-linux-gnu"
+	cd $(FFMPEGDIR); ./configure \
+		--prefix=$(GADEPS) \
 		--enable-shared --enable-pic \
 		--enable-libmp3lame \
 		--enable-libtheora --enable-libvorbis \
@@ -177,3 +189,12 @@ live555:
 	find $(LIVE555DIR) -name '*.hh' -exec cp -f {} $(GADEPS)/include/live555 \;
 	cp -f $(LIVE555DIR)/groupsock/include/NetCommon.h $(GADEPS)/include/live555
 	rm -rf $(LIVE555DIR)
+	
+freetype:
+	$(TGZUNPACK) $(FREETYPE)
+	mkdir -p $(FREETYPEDIR)/mybuild
+	cd $(FREETYPEDIR)/mybuild; ../configure --prefix=$(GADEPS) --with-pic
+	make -C $(FREETYPEDIR)/mybuild $(PARALLEL_MAKE)
+	make -C $(FREETYPEDIR)/mybuild install
+	rm -rf $(FREETYPEDIR)
+	ln -s $(GADEPS)/lib/pkgconfig $(GADEPS)/lib/freetype-config 
